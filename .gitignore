@@ -1,0 +1,7 @@
+__pycache__/
+
+artifacts/
+.venv/
+userdata2.sh
+.python-version
+main.py
