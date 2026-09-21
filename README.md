@@ -180,9 +180,42 @@ Kubernetes Service
 REST API
 ```
 
-### Deploying to EKS
+### Step 1: Install the Traefik Ingress Controller
 
-The Kubernetes manifests are provided in the `kubernetes-manifests/` directory:
+Before applying the Ingress, install Traefik in the EKS cluster using Helm.
+
+#### 1. Add the Traefik Helm Repository
+
+```bash
+helm repo add traefik https://helm.traefik.io/traefik
+helm repo update
+```
+
+#### 2. Install Traefik Ingress Controller
+
+```bash
+helm install traefik traefik/traefik \
+  --namespace traefik \
+  --create-namespace
+```
+
+#### 3. Verify the Installation
+
+```bash
+kubectl get pods -n traefik
+```
+
+You should see the Traefik controller running.
+
+#### 4. Retrieve the Load Balancer Endpoint
+
+```bash
+kubectl get svc -n traefik
+```
+
+Look for the `traefik` service of type **LoadBalancer**, and use the external DNS name to access applications via Ingress.
+
+### Step 2: Deploy the Application
 
 ```bash
 # Update the image name in kubernetes-manifests/deployment.yaml
@@ -192,6 +225,23 @@ kubectl apply -f kubernetes-manifests/namespace.yml
 kubectl apply -f kubernetes-manifests/deployment.yaml
 kubectl apply -f kubernetes-manifests/service.yaml
 ```
+
+### Step 3: Apply the Ingress
+
+Once Traefik is installed and the application is running, apply the Ingress manifest:
+
+```bash
+kubectl apply -f kubernetes-manifests/ingress.yaml
+```
+
+Before applying, update the host in `kubernetes-manifests/ingress.yaml` with your domain or the Traefik Load Balancer DNS name:
+
+```yaml
+rules:
+  - host: <your-domain-or-elb-dns>
+```
+
+The `/predict` endpoint will then be accessible through the Traefik Load Balancer endpoint at `http://<your-domain-or-elb-dns>/predict`.
 
 ## Quick Start
 
